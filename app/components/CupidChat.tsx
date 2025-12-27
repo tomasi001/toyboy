@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Sparkles } from 'lucide-react';
+import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Send, Sparkles } from "lucide-react";
 
 interface Message {
   id: string;
-  role: 'user' | 'cupid';
+  role: "user" | "cupid";
   content: string;
   timestamp: Date;
 }
@@ -15,24 +15,26 @@ interface CupidChatProps {
   onComplete: (transcript: string) => void;
 }
 
-const CUPID_SYSTEM_PROMPT = `You are Cupid, a witty and charming AI agent helping someone create a personalized digital action figure for their loved one. Your goal is to extract 10 key data points through natural conversation:
+const CUPID_SYSTEM_PROMPT = `You are Cupid, a witty and charming AI agent. You're helping a user create a "Toy Boy" experience—a personalized digital action figure version of THEMSELVES to send to their loved one. 
 
-1. The recipient's name
-2. The creator's name
-3. Overall vibe/mood
-4. Color preferences
-5. Visual aesthetic/style
-6. Inside jokes or special references
-7. Interests or hobbies
-8. Theme preference
-9. Avatar style preference
-10. Playful status message
+Your goal is to extract 10 key data points about the SENDER (the user) and their relationship to build this avatar through natural conversation:
 
-Be conversational, flirty, and fun. Don't ask boring form questions - weave them into the conversation naturally. Make it feel like chatting with a friend who's helping plan a surprise.`;
+1. The recipient's name (the lucky person receiving the card).
+2. The sender's name (the user themselves).
+3. The sender's vibe/personality (e.g., "cheeky explorer", "moody musician", "playful professional").
+4. The sender's visual aesthetic/style (e.g., "high-gloss streetwear", "vintage tailored", "minimalist tech").
+5. The sender's preferred color palette (this will theme the entire card).
+6. Interests/hobbies that define the sender (to customize the avatar's props or environment).
+7. Inside jokes or special references that only the sender and recipient share.
+8. Theme preference for the card's environment (e.g., "Neon Space", "Luxury Lounge", "Cyberpunk Workshop").
+9. How the sender wants their avatar to look (e.g., "3D Vinyl Toy", "Holographic Glitch", "Painted Portrait").
+10. A playful status message for the recipient (e.g., "Awaiting your command", "Currently thinking of you").
+
+Be conversational, flirty, and fun. Don't ask boring form questions - weave them into the conversation naturally. The focus is on capturing the SENDER'S essence so we can turn THEM into a digital toy for their partner.`;
 
 export default function CupidChat({ onComplete }: CupidChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -45,16 +47,17 @@ export default function CupidChat({ onComplete }: CupidChatProps) {
     setMounted(true);
     setMessages([
       {
-        id: 'initial',
-        role: 'cupid',
-        content: "Hey there! 👋 I'm Cupid, and I'm here to help you create something magical for someone special. Tell me, who's the lucky person you're making this for?",
+        id: "initial",
+        role: "cupid",
+        content:
+          "Hey there! 👋 I'm Cupid. I'm going to help you turn yourself into a digital action figure for someone special. Who's the lucky person receiving your 'Toy Boy' version today?",
         timestamp: new Date(),
       },
     ]);
   }, []);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -69,36 +72,36 @@ export default function CupidChat({ onComplete }: CupidChatProps) {
     messageIdCounter.current += 1;
     const userMessage: Message = {
       id: `user-${messageIdCounter.current}`,
-      role: 'user',
+      role: "user",
       content: input.trim(),
       timestamp: new Date(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setInput('');
+    setInput("");
     setIsLoading(true);
 
     try {
       // Call Gemini API directly for chat
-      const response = await fetch('/api/cupid-chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/cupid-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: [...messages, userMessage].map((m) => ({
-            role: m.role === 'cupid' ? 'model' : 'user',
+            role: m.role === "cupid" ? "model" : "user",
             parts: [{ text: m.content }],
           })),
           systemInstruction: CUPID_SYSTEM_PROMPT,
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to get response');
+      if (!response.ok) throw new Error("Failed to get response");
 
       const data = await response.json();
       messageIdCounter.current += 1;
       const cupidResponse: Message = {
         id: `cupid-${messageIdCounter.current}`,
-        role: 'cupid',
+        role: "cupid",
         content: data.response,
         timestamp: new Date(),
       };
@@ -110,16 +113,16 @@ export default function CupidChat({ onComplete }: CupidChatProps) {
         setIsComplete(true);
         // Generate transcript and call onComplete
         const transcript = [...messages, userMessage, cupidResponse]
-          .map((m) => `${m.role === 'cupid' ? 'Cupid' : 'User'}: ${m.content}`)
-          .join('\n\n');
+          .map((m) => `${m.role === "cupid" ? "Cupid" : "User"}: ${m.content}`)
+          .join("\n\n");
         setTimeout(() => onComplete(transcript), 1500);
       }
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error("Error sending message:", error);
       messageIdCounter.current += 1;
       const errorMessage: Message = {
         id: `error-${messageIdCounter.current}`,
-        role: 'cupid',
+        role: "cupid",
         content: "Oops! Something went wrong. Let's try that again?",
         timestamp: new Date(),
       };
@@ -130,7 +133,7 @@ export default function CupidChat({ onComplete }: CupidChatProps) {
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
@@ -162,9 +165,13 @@ export default function CupidChat({ onComplete }: CupidChatProps) {
             💘
           </motion.div>
           <div>
-            <h2 className="font-semibold text-zinc-900 dark:text-zinc-100">Cupid</h2>
+            <h2 className="font-semibold text-zinc-900 dark:text-zinc-100">
+              Cupid
+            </h2>
             <p className="text-xs text-zinc-600 dark:text-zinc-400">
-              {isComplete ? 'Ready to create magic! ✨' : 'Gathering the deets...'}
+              {isComplete
+                ? "Ready to create magic! ✨"
+                : "Gathering the deets..."}
             </p>
           </div>
         </div>
@@ -179,17 +186,21 @@ export default function CupidChat({ onComplete }: CupidChatProps) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${
+                message.role === "user" ? "justify-end" : "justify-start"
+              }`}
             >
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                  message.role === 'user'
-                    ? 'bg-gradient-to-br from-pink-500 to-purple-600 text-white'
-                    : 'bg-white/90 backdrop-blur-sm text-zinc-900 shadow-lg dark:bg-zinc-800/90 dark:text-zinc-100'
+                  message.role === "user"
+                    ? "bg-gradient-to-br from-pink-500 to-purple-600 text-white"
+                    : "bg-white/90 backdrop-blur-sm text-zinc-900 shadow-lg dark:bg-zinc-800/90 dark:text-zinc-100"
                 }`}
               >
-                <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                  {message.content}
+                </p>
               </motion.div>
             </motion.div>
           ))}
@@ -243,7 +254,11 @@ export default function CupidChat({ onComplete }: CupidChatProps) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder={isComplete ? 'Creating your experience...' : 'Type your message...'}
+            placeholder={
+              isComplete
+                ? "Creating your experience..."
+                : "Type your message..."
+            }
             disabled={isLoading || isComplete}
             className="flex-1 rounded-xl border border-pink-200/50 bg-white/50 px-4 py-3 text-sm placeholder:text-zinc-400 focus:border-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-400/20 dark:border-purple-800/50 dark:bg-zinc-800/50 dark:placeholder:text-zinc-500"
           />
@@ -261,4 +276,3 @@ export default function CupidChat({ onComplete }: CupidChatProps) {
     </div>
   );
 }
-

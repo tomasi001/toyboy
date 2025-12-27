@@ -11,18 +11,20 @@ const openai = new OpenAI({
 const SKELETON_PROMPT = `You are an expert React developer creating a high-end, premium "Toy Boy" digital action figure experience.
 Generate a single, production-ready App.tsx file that implements the "Orbital Designer Toy" aesthetic.
 
+IMPORTANT: The avatar in this experience represents the SENDER (the creator), who is presenting themselves as a "digital toy" for the RECIPIENT.
+
 === DESIGN SYSTEM (The Gemini Style) ===
 - Theme: "Designer Toy / Premium Collectible" (high-gloss, vinyl textures, cinematic lighting).
-- Background: Use PRIMARY_BG_HEX (default to dark #0A0A0A) with a radial-gradient(circle at 50% 50%, accent-color-alpha 0%, transparent 70%).
+- Background: Use PRIMARY_BG_HEX (the sender's preferred color) with a radial-gradient(circle at 50% 50%, accent-color-alpha 0%, transparent 70%).
 - Background Schematic: Include an absolute inset-0 pointer-events-none div with an <svg> grid pattern (100x100 grid with small circles at intersections, opacity-10).
-- Accents: Use ACCENT_1_HEX (default neon yellow #FFEB3B) for borders and glows.
+- Accents: Use ACCENT_1_HEX for borders and glows.
 - Typography: Headers should be italic, uppercase, font-black, with tracking-tighter and a text-shadow glow.
 
 === ARCHITECTURE ===
 - SCHEMA_DATA: Define a constant at the top containing all values from the provided JSON.
 - Modal Component: 
   - AnimatePresence with backdrop-blur-xl and bg-black/80.
-  - Inner Container: bg-[#1a3329] or similar dark tone, border-2 (ACCENT_1), rounded-2xl, with a holographic glowing line at the top.
+  - Inner Container: A dark tone matching the theme, border-2 (ACCENT_1), rounded-2xl, with a holographic glowing line at the top.
 - OrbitButton Component:
   - Absolute positioning in an orbital pattern around the center.
   - Circular (w-28 h-28 to w-36 h-36), border-2, bg-black/40 backdrop-blur-md.
@@ -30,21 +32,21 @@ Generate a single, production-ready App.tsx file that implements the "Orbital De
   - Include a decorative pulsing ring behind the icon.
 
 === PAGE LAYOUT ===
-1. Header: Centered at the top, big italicized title, small tracking-heavy theme description below it.
-2. Status Bar: Centered glassmorphism pill (bg-black/30 border-white/10) with pulsing status text.
+1. Header: Centered at the top, the APP_TITLE (e.g., "TOM'S DIGITAL TOY BOX"), small tracking-heavy theme description below it.
+2. Status Bar: Centered glassmorphism pill (bg-black/30 border-white/10) with the pulsing STATUS_TEXT (e.g., "ONLINE // AWAITING COMMAND").
 3. Central Hub:
    - A large Squircle/Rounded-Square frame (rounded-[40px], border-4, intense glow).
-   - Content: A large emoji avatar with a drop-shadow glow.
+   - Content: A large emoji avatar representing the SENDER (CREATOR_NAME), with a drop-shadow glow.
    - Effect: An absolute "Scanning Line" that moves top-to-bottom repeatedly.
    - The 4 OrbitButtons positioned at -top-12, -bottom-12, -left-16, and -right-16 relative to this hub.
-4. Footer: Tiny tracking-heavy text (e.g., "WORKSHOP V.2.5 // HANDCRAFTED BY [CREATOR_NAME]").
+4. Footer: Tiny tracking-heavy text (e.g., "WORKSHOP V.2.5 // HANDCRAFTED FOR [RECIPIENT_NAME] BY [CREATOR_NAME]").
 
 === UX & LOGIC ===
 - handleAction:
   - Trigger "TRANSMITTING..." state with a spinner.
   - POST to '/api/webhook-proxy' using the provided fetch pattern.
   - On success: Close modal and show a full-screen AnimatePresence overlay.
-  - Success Overlay: bg matching theme, a large emoji (🚀), "COMMAND ENGAGED" text, and a massive background pulsing ring.
+  - Success Overlay: bg matching theme, a large emoji representing the action, "[ACTION_NAME] ENGAGED" text, and a massive background pulsing ring.
 - Range Input: Custom styled webkit-slider-thumb with a neon glow.
 
 === CRITICAL RULES ===

@@ -10,36 +10,38 @@ const openai = new OpenAI({
 // Translator Prompt: Converts chat transcripts into structured JSON schema
 const TRANSLATOR_PROMPT = `You are a translator that converts conversational chat transcripts into a structured JSON schema for a personalized digital action figure experience.
 
+The key change in this version is that the avatar represents the SENDER (the user), not the recipient.
+
 Extract the following information from the conversation and return ONLY valid JSON (no markdown, no code blocks):
 
 {
-  "APP_TITLE": "A creative title for the experience (e.g., 'Alex's Love Portal')",
-  "THEME_NAME": "A theme descriptor (e.g., 'Cyberpunk Romance', 'Vintage Glamour', 'Minimalist Zen')",
-  "PRIMARY_BG_HEX": "#hexcolor (main background color)",
+  "APP_TITLE": "A creative title for the experience (e.g., 'Tom's Digital Toy Box')",
+  "THEME_NAME": "A theme descriptor for the environment (e.g., 'Cyberpunk Workshop', 'Luxury Penthouse')",
+  "PRIMARY_BG_HEX": "#hexcolor (main background color based on SENDER preference)",
   "SECONDARY_BG_HEX": "#hexcolor (accent/secondary color)",
   "TEXT_COLOR_HEX": "#hexcolor (primary text color)",
-  "VISUAL_MOTIF": "A description of the visual style (e.g., 'Holographic neon with glassmorphism', 'Vintage film grain with warm tones')",
-  "CENTRAL_COMPONENT_ARCHITECTURE": "Description of the avatar/central element style (e.g., '3D holographic frame with particle effects', 'Minimalist line art with subtle animations')",
-  "RECIPIENT_NAME": "The name of the person this is for",
-  "CREATOR_NAME": "The name of the person creating this",
-  "VIBE": "The overall mood/feeling (e.g., 'Playful and romantic', 'Mysterious and alluring')",
-  "INSIDE_JOKES": ["Array of inside jokes or references mentioned"],
+  "VISUAL_MOTIF": "A description of the visual style (e.g., 'Neon grid with floating data bits', 'Warm wood and cozy lighting')",
+  "CENTRAL_COMPONENT_ARCHITECTURE": "Description of the avatar's display environment (e.g., 'Floating holographic pedestal', 'Velvet-lined display case')",
+  "RECIPIENT_NAME": "The name of the person receiving the card",
+  "CREATOR_NAME": "The name of the SENDER (the user who is the subject of the avatar)",
+  "VIBE": "The SENDER'S vibe/personality (e.g., 'Adventurous and bold', 'Chill and musical')",
+  "INSIDE_JOKES": ["Array of inside jokes or references shared by sender and recipient"],
   "PREFERENCES": {
-    "colors": ["array of preferred colors"],
-    "aesthetics": ["array of aesthetic preferences"],
-    "interests": ["array of interests mentioned"]
+    "colors": ["array of SENDER'S preferred colors"],
+    "aesthetics": ["array of SENDER'S aesthetic preferences"],
+    "interests": ["array of SENDER'S interests/hobbies"]
   },
-  "STATUS_TEXT": "A playful status message (e.g., 'Ready for your command', 'Awaiting your touch')",
+  "STATUS_TEXT": "A playful status message FROM the sender TO the recipient",
   "ACTION_BUTTONS": [
     {
-      "label": "Button label (e.g., 'Dress Me', 'Mood Me', 'Love Me', 'Surprise Me')",
+      "label": "Button label (e.g., 'Dress Me', 'Serenade Me', 'Whisper to Me')",
       "action": "action_type",
-      "description": "What this button does"
+      "description": "What this button does to/with the sender's avatar"
     }
   ]
 }
 
-If any information is missing from the transcript, use creative defaults that match the overall vibe. Be imaginative and ensure all fields are populated.
+If any information is missing from the transcript, use creative defaults that match the sender's vibe. Be imaginative and ensure all fields are populated.
 
 Transcript to translate:
 `;
