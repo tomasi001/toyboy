@@ -7,18 +7,18 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_GENAI_API_KEY || "",
 });
 
-// Data points to extract
+// Data points to extract about the SENDER
 const DATA_POINTS = [
   "recipient name",
-  "creator name",
-  "overall vibe/mood",
-  "color preferences",
-  "visual aesthetic/style",
-  "inside jokes or special references",
-  "interests or hobbies",
-  "theme preference",
-  "avatar style preference",
-  "playful status message",
+  "sender name",
+  "sender vibe/personality",
+  "sender visual aesthetic/style",
+  "sender color preferences",
+  "sender interests/hobbies",
+  "inside jokes shared with recipient",
+  "card environment theme",
+  "avatar rendering style",
+  "status message for recipient",
 ];
 
 const COMPLETION_CHECK_PROMPT = `Based on the conversation, have we gathered enough information to create a personalized digital action figure? 
