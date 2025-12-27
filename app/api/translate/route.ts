@@ -1,0 +1,137 @@
+import { NextRequest, NextResponse } from "next/server";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import OpenAI from "openai";
+
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENAI_API_KEY || "");
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_GENAI_API_KEY || "",
+});
+
+// Translator Prompt: Converts chat transcripts into structured JSON schema
+const TRANSLATOR_PROMPT = `You are a translator that converts conversational chat transcripts into a structured JSON schema for a personalized digital action figure experience.
+
+Extract the following information from the conversation and return ONLY valid JSON (no markdown, no code blocks):
+
+{
+  "APP_TITLE": "A creative title for the experience (e.g., 'Alex's Love Portal')",
+  "THEME_NAME": "A theme descriptor (e.g., 'Cyberpunk Romance', 'Vintage Glamour', 'Minimalist Zen')",
+  "PRIMARY_BG_HEX": "#hexcolor (main background color)",
+  "SECONDARY_BG_HEX": "#hexcolor (accent/secondary color)",
+  "TEXT_COLOR_HEX": "#hexcolor (primary text color)",
+  "VISUAL_MOTIF": "A description of the visual style (e.g., 'Holographic neon with glassmorphism', 'Vintage film grain with warm tones')",
+  "CENTRAL_COMPONENT_ARCHITECTURE": "Description of the avatar/central element style (e.g., '3D holographic frame with particle effects', 'Minimalist line art with subtle animations')",
+  "RECIPIENT_NAME": "The name of the person this is for",
+  "CREATOR_NAME": "The name of the person creating this",
+  "VIBE": "The overall mood/feeling (e.g., 'Playful and romantic', 'Mysterious and alluring')",
+  "INSIDE_JOKES": ["Array of inside jokes or references mentioned"],
+  "PREFERENCES": {
+    "colors": ["array of preferred colors"],
+    "aesthetics": ["array of aesthetic preferences"],
+    "interests": ["array of interests mentioned"]
+  },
+  "STATUS_TEXT": "A playful status message (e.g., 'Ready for your command', 'Awaiting your touch')",
+  "ACTION_BUTTONS": [
+    {
+      "label": "Button label (e.g., 'Dress Me', 'Mood Me', 'Love Me', 'Surprise Me')",
+      "action": "action_type",
+      "description": "What this button does"
+    }
+  ]
+}
+
+If any information is missing from the transcript, use creative defaults that match the overall vibe. Be imaginative and ensure all fields are populated.
+
+Transcript to translate:
+`;
+
+export async function POST(request: NextRequest) {
+  try {
+    const provider = process.env.MODEL_PROVIDER || "GOOGLE";
+
+    if (provider === "GOOGLE" && !process.env.GOOGLE_GENAI_API_KEY) {
+      return NextResponse.json(
+        { error: "GOOGLE_GENAI_API_KEY is not configured" },
+        { status: 500 }
+      );
+    }
+
+    if (provider === "OPEN_AI" && !process.env.OPENAI_GENAI_API_KEY) {
+      return NextResponse.json(
+        { error: "OPENAI_GENAI_API_KEY is not configured" },
+        { status: 500 }
+      );
+    }
+
+    const body = await request.json();
+    const { transcript } = body;
+
+    if (!transcript || typeof transcript !== "string") {
+      return NextResponse.json(
+        { error: "Transcript is required and must be a string" },
+        { status: 400 }
+      );
+    }
+
+    let jsonText: string = "";
+
+    if (provider === "OPEN_AI") {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-5-nano",
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a data extraction expert. Respond with valid JSON only.",
+          },
+          { role: "user", content: `${TRANSLATOR_PROMPT}\n\n${transcript}` },
+        ],
+        response_format: { type: "json_object" },
+      });
+      jsonText = completion.choices[0].message.content || "";
+    } else {
+      const model = genAI.getGenerativeModel({
+        model: "gemini-2.5-flash-lite",
+      });
+      const fullPrompt = `${TRANSLATOR_PROMPT}\n\n${transcript}\n\nReturn ONLY the JSON object, no additional text.`;
+      const result = await model.generateContent(fullPrompt);
+      const response = await result.response;
+      jsonText = response.text();
+    }
+
+    jsonText = jsonText.trim();
+
+    // Robust cleaning: remove triple backtick blocks with any language label
+    const jsonBlockRegex = /^```(?:json)?\n?([\s\S]*?)\n?```$/i;
+    const match = jsonText.match(jsonBlockRegex);
+    if (match) {
+      jsonText = match[1];
+    } else {
+      // If it doesn't match the full block regex, try to just strip the start and end ticks
+      jsonText = jsonText.replace(/^```(?:json)?\n?/i, "");
+      jsonText = jsonText.replace(/\n?```$/i, "");
+    }
+
+    jsonText = jsonText.trim();
+
+    const jsonSchema = JSON.parse(jsonText);
+    return NextResponse.json(jsonSchema);
+  } catch (error) {
+    console.error("Error in translate route:", error);
+    if (error instanceof SyntaxError) {
+      return NextResponse.json(
+        {
+          error: "Failed to parse JSON response from AI model",
+          details: error.message,
+        },
+        { status: 500 }
+      );
+    }
+    return NextResponse.json(
+      {
+        error: "Internal server error",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
+  }
+}
